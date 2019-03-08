@@ -1,6 +1,6 @@
 # frontend
 
-> aws graphql
+> My lovely Nuxt.js project
 
 ## Build Setup
 
