@@ -9,7 +9,7 @@
                     class="form-control">
                     <option
                         v-for="item in items"
-                        :key="item">
+                        :key="item.type">
                         {{ item.type }}
                     </option>
                 </select>
@@ -31,33 +31,12 @@ export default {
             service: null
         }
     },
-    created() {
-        // this.fetchData()
+    mounted() {
+        this.fetchData()
     },
     methods: {
-        vote() {
-            this.client
-                .mutate({
-                    mutation: gql`
-                mutation {
-                  vote(service: ${this.service})
-                }
-              `
-                })
-                .then(result => {
-                    // eslint-disable-next-line
-                    console.log(result)
-                    // votingresults.fetchData();
-                })
-                .catch(err => {
-                    // eslint-disable-next-line
-                    console.log(err)
-                })
-        },
         fetchData() {
-            // eslint-disable-next-line
-            console.log('fetchData()')
-            this.client
+            this.$client()
                 .query({
                     query: gql`
                         {
@@ -75,6 +54,25 @@ export default {
                     console.log(result.data.getServices.items)
                     this.items = result.data.getServices.items.sort()
                     this.service = result.data.getServices.items[0]
+                })
+                .catch(err => {
+                    // eslint-disable-next-line
+                    console.log(err)
+                })
+        },
+        vote() {
+            this.$client()
+                .mutate({
+                    mutation: gql`
+                        mutation {
+                        vote(service: ${this.service})
+                        }
+                    `
+                })
+                .then(result => {
+                    // eslint-disable-next-line
+                    console.log(result)
+                    // votingresults.fetchData();
                 })
                 .catch(err => {
                     // eslint-disable-next-line

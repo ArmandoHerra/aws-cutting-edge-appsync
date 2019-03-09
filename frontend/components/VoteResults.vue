@@ -4,7 +4,7 @@
         <ul class="list-group">
             <li
                 v-for="item in items"
-                :key="item"
+                :key="item.type"
                 class="list-group-item d-flex justify-content-between align-items-center">
                 {{ item.service }}
                 <span class="badge badge-dark badge-pill">{{ item.upvotes }}</span>
@@ -21,12 +21,12 @@ export default {
             items: []
         }
     },
-    created() {
-        // this.fetchData()
+    mounted() {
+        this.fetchData()
     },
     methods: {
         fetchData() {
-            this.client
+            this.$client()
                 .query({
                     query: gql`
                         {
@@ -54,8 +54,8 @@ export default {
                 })
         }
     },
-    subscribe: function() {
-        this.client
+    subscribe() {
+        this.$client()
             .subscribe({
                 query: gql`
                     subscription {
