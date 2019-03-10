@@ -33,7 +33,7 @@ export default {
         }
     },
     mounted() {
-        this.subscribe()
+        this.fetchData()
     },
     methods: {
         fetchData() {
