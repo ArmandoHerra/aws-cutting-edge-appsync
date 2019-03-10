@@ -22,6 +22,7 @@ const authLink = setContext((_, { headers }) => {
 })
 
 export default ({ app }, inject) => {
+    console.log('app: ', app)
     inject(
         'client',
         () =>
@@ -43,4 +44,15 @@ export default ({ app }, inject) => {
                 }
             )
     )
+    app.$client()
+        .subscribe({
+            query: gql`
+                subscription {
+                    voted
+                }
+            `
+        })
+        .subscribe(data => {
+            app.store.dispatch('vote/fetchVotingResults')
+        })
 }

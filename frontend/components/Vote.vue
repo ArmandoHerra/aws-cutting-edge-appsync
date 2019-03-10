@@ -9,8 +9,8 @@
                     Favorite Service
                 </label>
                 <v-select
-                    v-model="service"
-                    :items="items"
+                    v-model="awsService"
+                    :items="awsServices"
                     :rules="[v => !!v || 'Item is required']"
                     label="AWS Service"
                     required />
@@ -38,76 +38,22 @@
 import gql from 'graphql-tag'
 export default {
     data: () => ({
-        items: null,
-        service: null, // Here
+        awsService: '',
         valid: true,
-        select: null,
         snackbar: false,
         snackText: ''
     }),
+    computed: {
+        awsServices() {
+            return this.$store.getters['vote/getServices']
+        }
+    },
     mounted() {
-        this.fetchData()
+        this.$store.dispatch('vote/fetchServices')
     },
     methods: {
-        fetchData() {
-            this.$refs.form.reset()
-            this.validate()
-            this.$client()
-                .query({
-                    query: gql`
-                        {
-                            getServices(nextToken: null) {
-                                items {
-                                    type
-                                }
-                                nextToken
-                            }
-                        }
-                    `
-                })
-                .then(result => {
-                    console.log(
-                        'GQL getServices data: ',
-                        JSON.stringify(result, null, 4)
-                    )
-                    this.items = []
-                    result.data.getServices.items.sort().map(item => {
-                        this.items.push(item.type)
-                    })
-                    this.service = this.items[0]
-                })
-                .catch(err => {
-                    console.log('GQL getServices error: ', err)
-                })
-        },
         vote() {
-            this.$client()
-                .mutate({
-                    mutation: gql`
-                        mutation {
-                            vote(service: ${this.service})
-                        }
-                    `
-                })
-                .then(result => {
-                    console.log(
-                        'GQL vote data: ',
-                        JSON.stringify(result, null, 4)
-                    )
-                    this.snackText = 'Vote Successfull'
-                    this.snackbar = true
-                    this.fetchData()
-                })
-                .catch(err => {
-                    console.log('GQL vote error: ', err)
-                    this.snackText = 'Error Voting'
-                    this.snackbar = true
-                })
-        },
-        validate() {
-            if (this.$refs.form.validate()) {
-                this.snackbar = true
-            }
+            this.$store.dispatch('vote/vote', this.awsService)
         }
     }
 }
