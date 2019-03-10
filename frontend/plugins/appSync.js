@@ -22,7 +22,6 @@ const authLink = setContext((_, { headers }) => {
 })
 
 export default ({ app }, inject) => {
-    console.log('app: ', app)
     inject(
         'client',
         () =>
