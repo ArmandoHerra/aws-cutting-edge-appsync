@@ -1,18 +1,29 @@
 <template>
-    <div id="votingresults">
+    <v-container fluid>
         <h2>Results</h2>
-        <ul class="list-group">
-            <li
-                v-for="item in items"
-                :key="item.type"
-                class="list-group-item d-flex justify-content-between align-items-center">
+        <v-list
+            v-for="item in items"
+            :key="item.type"
+            subheader
+            two-line>
+            <v-subheader>
                 {{ item.service }}
-                <span class="badge badge-dark badge-pill">{{ item.upvotes }}</span>
-            </li>
-        </ul>
-    </div>
+            </v-subheader>
+            <v-list-tile>
+                <v-list-tile-action>
+                    <v-chip
+                        color="blue"
+                        text-color="white">
+                        <v-avatar class="blue darken-4">
+                            {{ item.upvotes }}
+                        </v-avatar>
+                        Votes
+                    </v-chip>
+                </v-list-tile-action>
+            </v-list-tile>
+        </v-list>
+    </v-container>
 </template>
-
 <script>
 import gql from 'graphql-tag'
 export default {
@@ -22,7 +33,7 @@ export default {
         }
     },
     mounted() {
-        this.fetchData()
+        this.subscribe()
     },
     methods: {
         fetchData() {
@@ -41,33 +52,36 @@ export default {
                     `
                 })
                 .then(result => {
-                    // eslint-disable-next-line
-                    console.log(result)
+                    console.log(
+                        'GQL getVotingResults data: ',
+                        JSON.stringify(result, null, 4)
+                    )
                     result.data.getVotingResults.items.sort(
                         (a, b) => b.upvotes - a.upvotes
                     )
                     this.items = result.data.getVotingResults.items
                 })
                 .catch(err => {
-                    // eslint-disable-next-line
-                    console.log(err)
+                    console.log('GQL getVotingResults error: ', err)
+                })
+        },
+        subscribe() {
+            this.$client()
+                .subscribe({
+                    query: gql`
+                        subscription {
+                            voted
+                        }
+                    `
+                })
+                .subscribe(data => {
+                    console.log(
+                        'GQL subscribe data: ',
+                        JSON.stringify(result, null, 4)
+                    )
+                    this.fetchData()
                 })
         }
-    },
-    subscribe() {
-        this.$client()
-            .subscribe({
-                query: gql`
-                    subscription {
-                        voted
-                    }
-                `
-            })
-            .subscribe(data => {
-                this.fetchData()
-            })
     }
 }
 </script>
-<style scoped>
-</style>

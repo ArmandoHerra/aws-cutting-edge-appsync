@@ -1,41 +1,57 @@
 <template>
-    <div>
+    <v-container fluid>
         <h2>Vote</h2>
-        <form @submit.prevent="vote">
+        <v-form
+            ref="form"
+            v-model="valid">
             <div class="form-group">
-                <label for="exampleFormControlSelect1">Favorite Service</label>
-                <select
+                <label for="exampleFormControlSelect1">
+                    Favorite Service
+                </label>
+                <v-select
                     v-model="service"
-                    class="form-control">
-                    <option
-                        v-for="item in items"
-                        :key="item.type">
-                        {{ item.type }}
-                    </option>
-                </select>
+                    :items="items"
+                    :rules="[v => !!v || 'Item is required']"
+                    label="AWS Service"
+                    required />
             </div>
-            <button
-                type="submit"
-                class="btn btn-primary">
-                Submit
-            </button>
-        </form>
-    </div>
+            <v-btn
+                color="info"
+                class="btn btn-primary"
+                @click="vote">
+                Vote
+            </v-btn>
+        </v-form>
+        <v-snackbar
+            v-model="snackbar">
+            {{ snackText }}
+            <v-btn
+                color="info"
+                flat
+                @click="snackbar = false">
+                Close
+            </v-btn>
+        </v-snackbar>
+    </v-container>
 </template>
 <script>
 import gql from 'graphql-tag'
 export default {
-    data() {
-        return {
-            items: null,
-            service: null
-        }
-    },
+    data: () => ({
+        items: null,
+        service: null, // Here
+        valid: true,
+        select: null,
+        snackbar: false,
+        snackText: ''
+    }),
     mounted() {
         this.fetchData()
     },
     methods: {
         fetchData() {
+            this.$refs.form.reset()
+            this.validate()
             this.$client()
                 .query({
                     query: gql`
@@ -50,14 +66,18 @@ export default {
                     `
                 })
                 .then(result => {
-                    // eslint-disable-next-line
-                    console.log(result.data.getServices.items)
-                    this.items = result.data.getServices.items.sort()
-                    this.service = result.data.getServices.items[0]
+                    console.log(
+                        'GQL getServices data: ',
+                        JSON.stringify(result, null, 4)
+                    )
+                    this.items = []
+                    result.data.getServices.items.sort().map(item => {
+                        this.items.push(item.type)
+                    })
+                    this.service = this.items[0]
                 })
                 .catch(err => {
-                    // eslint-disable-next-line
-                    console.log(err)
+                    console.log('GQL getServices error: ', err)
                 })
         },
         vote() {
@@ -65,19 +85,29 @@ export default {
                 .mutate({
                     mutation: gql`
                         mutation {
-                        vote(service: ${this.service})
+                            vote(service: ${this.service})
                         }
                     `
                 })
                 .then(result => {
-                    // eslint-disable-next-line
-                    console.log(result)
-                    // votingresults.fetchData();
+                    console.log(
+                        'GQL vote data: ',
+                        JSON.stringify(result, null, 4)
+                    )
+                    this.snackText = 'Vote Successfull'
+                    this.snackbar = true
+                    this.fetchData()
                 })
                 .catch(err => {
-                    // eslint-disable-next-line
-                    console.log(err)
+                    console.log('GQL vote error: ', err)
+                    this.snackText = 'Error Voting'
+                    this.snackbar = true
                 })
+        },
+        validate() {
+            if (this.$refs.form.validate()) {
+                this.snackbar = true
+            }
         }
     }
 }
